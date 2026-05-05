@@ -1,0 +1,147 @@
+package com.airpollution.survey.service;
+
+import com.airpollution.survey.dto.SurveyCreateRequest;
+import com.airpollution.survey.dto.SurveyResponse;
+import com.airpollution.survey.dto.SurveyUpdateRequest;
+import com.airpollution.survey.entity.SurveyRecord;
+import com.airpollution.survey.repository.SurveyRecordRepository;
+import jakarta.persistence.criteria.Predicate;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+@Service
+public class SurveyService {
+    private final SurveyRecordRepository repository;
+    private final SurveyMapper mapper;
+    private final RiskScoringService riskScoringService;
+
+    public SurveyService(SurveyRecordRepository repository, SurveyMapper mapper, RiskScoringService riskScoringService) {
+        this.repository = repository;
+        this.mapper = mapper;
+        this.riskScoringService = riskScoringService;
+    }
+
+    @Transactional
+    public SurveyResponse create(SurveyCreateRequest request, Authentication authentication) {
+        SurveyRecord record = new SurveyRecord();
+        mapper.copyPayload(request, record);
+        record.setSubmittedBy(authentication.getName());
+        record.setCreatedAt(OffsetDateTime.now());
+        record.setUpdatedAt(OffsetDateTime.now());
+        record.setSurveyId(nextSurveyId(request.getSurveyDate()));
+        record.setHouseholdId(record.getSurveyId().replace("APCHS", "HH"));
+        riskScoringService.applyScores(record);
+        return mapper.toResponse(repository.save(record));
+    }
+
+    @Transactional(readOnly = true)
+    public List<SurveyResponse> list(Map<String, String> filters, Authentication authentication) {
+        return repository.findAll(specification(filters, authentication)).stream().map(mapper::toResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public SurveyRecord getRecord(Long id, Authentication authentication) {
+        SurveyRecord record = repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Survey not found"));
+        assertCanAccess(record, authentication);
+        return record;
+    }
+
+    @Transactional(readOnly = true)
+    public SurveyResponse get(Long id, Authentication authentication) {
+        return mapper.toResponse(getRecord(id, authentication));
+    }
+
+    @Transactional
+    public SurveyResponse update(Long id, SurveyUpdateRequest request, Authentication authentication) {
+        SurveyRecord record = getRecord(id, authentication);
+        mapper.copyPayload(request, record);
+        record.setUpdatedAt(OffsetDateTime.now());
+        riskScoringService.applyScores(record);
+        return mapper.toResponse(repository.save(record));
+    }
+
+    @Transactional
+    public void delete(Long id, Authentication authentication) {
+        SurveyRecord record = getRecord(id, authentication);
+        if (!isAdmin(authentication)) {
+            throw new AccessDeniedException("Only admins can delete survey records");
+        }
+        repository.delete(record);
+    }
+
+    public Specification<SurveyRecord> specification(Map<String, String> filters, Authentication authentication) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            addEquals(predicates, cb, root.get("studyArea"), filters.get("studyArea"));
+            addEquals(predicates, cb, root.get("district"), filters.get("district"));
+            addEquals(predicates, cb, root.get("block"), filters.get("block"));
+            addEquals(predicates, cb, root.get("village"), filters.get("village"));
+            addEquals(predicates, cb, root.get("riskLevel"), filters.get("riskLevel"));
+            addEquals(predicates, cb, root.get("primaryCookingFuel"), filters.get("cookingFuel"));
+            if (hasValue(filters.get("visitedHospital"))) {
+                predicates.add(cb.equal(root.get("visitedHospital"), Boolean.valueOf(filters.get("visitedHospital"))));
+            }
+            if (hasValue(filters.get("fromDate"))) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("surveyDate"), LocalDate.parse(filters.get("fromDate"))));
+            }
+            if (hasValue(filters.get("toDate"))) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("surveyDate"), LocalDate.parse(filters.get("toDate"))));
+            }
+            if (hasValue(filters.get("symptom"))) {
+                String symptom = filters.get("symptom");
+                for (String allowed : RiskScoringService.symptomFields()) {
+                    if (allowed.equals(symptom)) {
+                        predicates.add(cb.and(cb.isNotNull(root.get(symptom)), cb.notEqual(root.get(symptom), "NEVER")));
+                    }
+                }
+            }
+            if (!isAdmin(authentication)) {
+                predicates.add(cb.equal(root.get("submittedBy"), authentication.getName()));
+            }
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
+    }
+
+    public boolean isAdmin(Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch("ROLE_ADMIN"::equals);
+    }
+
+    private String nextSurveyId(LocalDate date) {
+        int year = date == null ? LocalDate.now().getYear() : date.getYear();
+        LocalDate start = LocalDate.of(year, 1, 1);
+        LocalDate end = LocalDate.of(year, 12, 31);
+        long next = repository.countBySurveyDateBetween(start, end) + 1;
+        return "APCHS-" + year + "-" + String.format("%06d", next);
+    }
+
+    private void assertCanAccess(SurveyRecord record, Authentication authentication) {
+        if (!isAdmin(authentication) && !record.getSubmittedBy().equals(authentication.getName())) {
+            throw new AccessDeniedException("You do not have permission to access this survey record");
+        }
+    }
+
+    private void addEquals(List<Predicate> predicates, jakarta.persistence.criteria.CriteriaBuilder cb,
+                           jakarta.persistence.criteria.Path<String> path, String value) {
+        if (hasValue(value)) {
+            predicates.add(cb.equal(path, value));
+        }
+    }
+
+    private boolean hasValue(String value) {
+        return value != null && !value.isBlank();
+    }
+}

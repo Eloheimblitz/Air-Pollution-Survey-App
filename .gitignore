@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Frontend build
+frontend/dist/
+
+# Backend build
+backend/target/
+
+# Local environment
+.env
+frontend/.env
+backend/.env
+
+# Local run logs
+*-run.log
+*-error.log
+
+# IDE and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,52 @@
+import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import api, { saveSession } from '../api/client';
+
+export default function Login() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [form, setForm] = useState({ username: 'admin', password: 'admin123' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function submit(event) {
+    event.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const { data } = await api.post('/auth/login', form);
+      saveSession(data);
+      navigate(location.state?.from?.pathname || '/dashboard', { replace: true });
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed. Check username and password.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <main className="login-screen">
+      <section className="login-panel">
+        <p className="eyebrow">Community Health Survey</p>
+        <h1>Air Pollution Household Data Collection</h1>
+        <p className="muted">Data entered here is used for health survey analysis and should be handled with care.</p>
+        <form onSubmit={submit}>
+          <label>
+            Username
+            <input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} required />
+          </label>
+          <label>
+            Password
+            <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
+          </label>
+          {error && <div className="alert error">{error}</div>}
+          <button disabled={loading}>{loading ? 'Signing in...' : 'Sign in'}</button>
+        </form>
+        <div className="demo-box">
+          <span>Admin: admin / admin123</span>
+          <span>Surveyor: surveyor / survey123</span>
+        </div>
+      </section>
+    </main>
+  );
+}
