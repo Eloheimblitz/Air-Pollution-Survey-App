@@ -90,7 +90,7 @@ The app runs at `http://localhost:5173`.
 - Admin: `admin` / `admin123`
 - Surveyor: `surveyor` / `survey123`
 
-Passwords are seeded through `CommandLineRunner` and stored with BCrypt hashes.
+Passwords are seeded through `CommandLineRunner` and stored with BCrypt hashes when `SEED_DEMO_USERS=true`. The production login screen does not display demo credentials.
 
 ## API Endpoints
 

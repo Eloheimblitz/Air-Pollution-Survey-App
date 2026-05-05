@@ -5,7 +5,7 @@ import api, { saveSession } from '../api/client';
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [form, setForm] = useState({ username: 'admin', password: 'admin123' });
+  const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -42,10 +42,6 @@ export default function Login() {
           {error && <div className="alert error">{error}</div>}
           <button disabled={loading}>{loading ? 'Signing in...' : 'Sign in'}</button>
         </form>
-        <div className="demo-box">
-          <span>Admin: admin / admin123</span>
-          <span>Surveyor: surveyor / survey123</span>
-        </div>
       </section>
     </main>
   );
