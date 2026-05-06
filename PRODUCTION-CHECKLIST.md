@@ -64,6 +64,7 @@ VITE_API_BASE_URL=https://your-backend-url/api
 - Create real admin and surveyor accounts.
 - Change default/demo passwords if demo seeding was enabled temporarily.
 - Submit one test survey.
+- Test one offline survey by disconnecting from the backend, saving a survey, reconnecting, and using Pending Sync.
 - Confirm dashboard updates.
 - Test CSV and Excel exports.
 - Test surveyor role restrictions.

@@ -4,6 +4,7 @@ Production-ready full-stack household data collection system for an air pollutio
 
 The application supports JWT login, role-based survey access, PostgreSQL storage, dashboard summaries, survey CRUD, filtered record search, GPS capture, automatic risk scoring, and CSV/Excel export.
 Admins can also create surveyor accounts, reset passwords, change roles, and disable accounts. Every signed-in user can change their own password from the Account page.
+The frontend includes offline capture for new surveys: submissions made without a server connection are stored in IndexedDB and shown on the Pending Sync page until they are synced.
 
 ## Tech Stack
 
@@ -269,4 +270,10 @@ Production notes:
 
 ## Offline/PWA Note
 
-The frontend is structured so service worker based offline capture can be added later in `frontend/src`. Full offline sync is intentionally not implemented in the first production version to avoid data conflict risk.
+The frontend registers a service worker and stores new offline survey submissions in IndexedDB. Surveyors should log in once while online before fieldwork. If the backend is unreachable while adding a new survey, the app saves it in Pending Sync. When the connection returns, users can press Sync now or let the app attempt sync when the browser reports it is online.
+
+Current offline scope:
+
+- New survey submissions are queued offline.
+- Existing record edits are online-only to avoid conflicting updates.
+- Login must happen online at least once so the JWT token is available.

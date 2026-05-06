@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/client';
 import SurveyForm from '../components/SurveyForm';
+import { addPendingSurvey, isNetworkError } from '../utils/offlineStore';
+import { getSession } from '../api/client';
 
 export default function SurveyPage({ mode }) {
   const { id } = useParams();
@@ -21,12 +23,25 @@ export default function SurveyPage({ mode }) {
     setLoading(true);
     setError('');
     setFieldErrors({});
+
+    if (mode === 'create' && !navigator.onLine) {
+      await addPendingSurvey(values, getSession()?.username || 'unknown');
+      navigate('/offline-queue', { state: { message: 'Survey saved offline and marked for sync.' } });
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data } = mode === 'edit'
         ? await api.put(`/surveys/${id}`, values)
         : await api.post('/surveys', values);
       navigate(`/surveys/${data.id}`);
     } catch (err) {
+      if (mode === 'create' && isNetworkError(err)) {
+        await addPendingSurvey(values, getSession()?.username || 'unknown');
+        navigate('/offline-queue', { state: { message: 'Network unavailable. Survey saved offline and marked for sync.' } });
+        return;
+      }
       setError(err.response?.data?.message || 'Unable to save survey. Check required fields.');
       setFieldErrors(err.response?.data?.fields || {});
     } finally {

@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
+import OfflineQueue from './pages/OfflineQueue';
 import Records from './pages/Records';
 import SurveyDetail from './pages/SurveyDetail';
 import SurveyPage from './pages/SurveyPage';
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/surveys/:id/edit" element={<SurveyPage mode="edit" />} />
           <Route path="/users" element={<Users />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/offline-queue" element={<OfflineQueue />} />
         </Route>
       </Route>
       <Route path="*" element={<NotFound />} />
