@@ -88,10 +88,12 @@ The app runs at `http://localhost:5173`.
 
 ## Demo Login
 
+Demo users are optional and should only be used for local testing:
+
 - Admin: `admin` / `admin123`
 - Surveyor: `surveyor` / `survey123`
 
-Passwords are seeded through `CommandLineRunner` and stored with BCrypt hashes when `SEED_DEMO_USERS=true`. The production login screen does not display demo credentials.
+Passwords are seeded through `CommandLineRunner` and stored with BCrypt hashes only when `SEED_DEMO_USERS=true`. For real field work and production deployments, keep `SEED_DEMO_USERS=false`, create real admin/surveyor accounts from the Users page, and do not use the demo credentials. The production login screen does not display demo credentials.
 
 ## API Endpoints
 

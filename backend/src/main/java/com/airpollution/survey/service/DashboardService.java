@@ -32,7 +32,7 @@ public class DashboardService {
         long studyAreas = records.stream().map(SurveyRecord::getStudyArea).filter(v -> v != null && !v.isBlank()).distinct().count();
         long highRisk = records.stream().filter(r -> "HIGH".equals(r.getRiskLevel()) || "VERY_HIGH".equals(r.getRiskLevel())).count();
         long wood = records.stream().filter(r -> "FIREWOOD".equals(r.getPrimaryCookingFuel())).count();
-        long both = records.stream().filter(r -> "BOTH".equals(r.getCurrentSimpleCookingCategory())).count();
+        long both = records.stream().filter(r -> "OTHER".equals(r.getPrimaryCookingFuel())).count();
         long smokers = records.stream()
                 .filter(r -> Boolean.TRUE.equals(r.getSmokingStatus()) || safeInt(r.getNumberOfSmokersInHousehold()) > 0)
                 .count();
@@ -68,7 +68,7 @@ public class DashboardService {
     private Map<String, Long> commonSymptoms(List<SurveyRecord> records) {
         Map<String, Long> counts = new LinkedHashMap<>();
         counts.put("Dry cough", records.stream().filter(r -> reported(r.getDryCough())).count());
-        counts.put("Phlegm cough", records.stream().filter(r -> reported(r.getPhlegmCough())).count());
+        counts.put("Wet cough", records.stream().filter(r -> reported(r.getWetCough())).count());
         counts.put("Wheezing", records.stream().filter(r -> reported(r.getWheezing())).count());
         counts.put("Breathlessness", records.stream().filter(r -> reported(r.getBreathlessness())).count());
         counts.put("Chest discomfort", records.stream().filter(r -> reported(r.getChestDiscomfort())).count());
@@ -77,7 +77,7 @@ public class DashboardService {
     }
 
     private boolean hasRespiratorySymptoms(SurveyRecord r) {
-        return reported(r.getDryCough()) || reported(r.getPhlegmCough()) || reported(r.getWheezing())
+        return reported(r.getDryCough()) || reported(r.getWetCough()) || reported(r.getWheezing())
                 || reported(r.getBreathlessness()) || reported(r.getChestDiscomfort());
     }
 

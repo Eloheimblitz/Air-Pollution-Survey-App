@@ -23,7 +23,7 @@ export default function Dashboard() {
     ['Study areas covered', summary.totalStudyAreasCovered],
     ['High-risk households', summary.totalHighRiskHouseholds],
     ['Using wood/firewood', summary.householdsUsingWoodFirewood],
-    ['Using gas and wood', summary.householdsUsingBothGasAndWood],
+    ['Other cooking', summary.householdsUsingBothGasAndWood],
     ['Smokers', summary.smokers],
     ['Respiratory symptoms', summary.respondentsWithRespiratorySymptoms],
     ['Hospital visits', summary.hospitalVisits],
@@ -47,7 +47,7 @@ export default function Dashboard() {
       <section className="chart-grid">
         <ChartPanel title="Survey count by study area" data={summary.surveyCountByStudyArea} />
         <ChartPanel title="Risk level distribution" data={summary.riskLevelDistribution} type="pie" />
-        <ChartPanel title="Cooking fuel distribution" data={summary.cookingFuelDistribution} />
+        <ChartPanel title="Cooking distribution" data={summary.cookingFuelDistribution} />
         <ChartPanel title="Common symptoms count" data={summary.commonSymptomsCount} />
         <ChartPanel title="Hospital visit yes/no" data={summary.hospitalVisitDistribution} type="pie" />
       </section>

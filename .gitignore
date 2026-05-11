@@ -15,6 +15,7 @@ backend/.env
 # Local run logs
 *-run.log
 *-error.log
+.codex-backups/
 
 # IDE and OS
 .idea/

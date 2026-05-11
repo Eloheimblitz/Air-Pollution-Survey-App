@@ -1,6 +1,6 @@
 const symptomFields = [
   'sinusitis', 'rhinitis', 'sneezing', 'soreThroat', 'coldOrFever', 'dryCough',
-  'phlegmCough', 'wheezing', 'breathlessness', 'chestDiscomfort', 'sleepDisturbance',
+  'wetCough', 'wheezing', 'breathlessness', 'chestDiscomfort', 'sleepDisturbance',
   'headache', 'eyeIrritation', 'skinIrritation'
 ];
 
@@ -16,7 +16,6 @@ export function ageGroup(age) {
 export function calculateRisk(values) {
   let exposureRiskScore = 0;
   if (['FIREWOOD', 'COAL'].includes(values.primaryCookingFuel)) exposureRiskScore += 3;
-  if (['FIREWOOD', 'COAL'].includes(values.secondaryCookingFuel)) exposureRiskScore += 2;
   if (values.kitchenVentilation === 'POOR') exposureRiskScore += 3;
   if (values.kitchenVentilation === 'MODERATE') exposureRiskScore += 1;
   if (values.chimneyOrExhaustAvailable === false) exposureRiskScore += 1;
@@ -33,7 +32,7 @@ export function calculateRisk(values) {
 
   const group = ageGroup(values.age);
   let vulnerabilityScore = ['UNDER_5', 'ELDERLY_60_PLUS'].includes(group) ? 2 : 0;
-  ['asthma', 'copdOrChronicBronchitis', 'tuberculosis', 'longTermRespiratoryDisease'].forEach((field) => {
+  ['asthma', 'tuberculosis'].forEach((field) => {
     if (values[field] === true) vulnerabilityScore += 3;
   });
 

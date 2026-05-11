@@ -1,17 +1,21 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import FormField from './FormField';
-import { calculateRisk } from '../utils/risk';
-import { defaultSurvey, sections } from '../utils/surveyConfig';
+import { ageGroup } from '../utils/risk';
+import { defaultSurvey, locationDefaultsForStudyArea, sections } from '../utils/surveyConfig';
 
-export default function SurveyForm({ initialValues = {}, onSubmit, submitLabel = 'Save survey', loading = false }) {
+export default function SurveyForm({ initialValues = {}, lockedFields = [], onSubmit, submitLabel = 'Save survey', loading = false }) {
   const [values, setValues] = useState({ ...defaultSurvey, ...initialValues });
   const [activeSection, setActiveSection] = useState(0);
   const [gpsStatus, setGpsStatus] = useState('');
   const [validationErrors, setValidationErrors] = useState([]);
-  const risk = useMemo(() => calculateRisk(values), [values]);
 
   function update(name, value) {
-    setValues((current) => ({ ...current, [name]: value }));
+    setValues((current) => {
+      if (name === 'studyArea') {
+        return { ...current, [name]: value, ...locationDefaultsForStudyArea(value) };
+      }
+      return { ...current, [name]: value };
+    });
     setValidationErrors([]);
   }
 
@@ -50,7 +54,7 @@ export default function SurveyForm({ initialValues = {}, onSubmit, submitLabel =
       setActiveSection(missing[0].sectionIndex);
       return;
     }
-    onSubmit({ ...values, ageGroup: risk.ageGroup });
+    onSubmit({ ...values, ageGroup: ageGroup(values.age) });
   }
 
   const section = sections[activeSection];
@@ -99,27 +103,8 @@ export default function SurveyForm({ initialValues = {}, onSubmit, submitLabel =
         )}
         <div className="form-grid">
           {section.fields.filter(visible).map((field) => (
-            <FormField key={field.name} field={field} value={values[field.name]} onChange={(value) => update(field.name, value)} />
+            <FormField key={field.name} field={field} value={values[field.name]} onChange={(value) => update(field.name, value)} disabled={isLocked(field, lockedFields)} />
           ))}
-        </div>
-      </section>
-
-      <section className="risk-preview">
-        <div>
-          <span>Exposure</span>
-          <strong>{risk.exposureRiskScore}</strong>
-        </div>
-        <div>
-          <span>Symptoms</span>
-          <strong>{risk.symptomScore}</strong>
-        </div>
-        <div>
-          <span>Vulnerability</span>
-          <strong>{risk.vulnerabilityScore}</strong>
-        </div>
-        <div className={`risk-pill ${risk.riskLevel?.toLowerCase()}`}>
-          <span>Total risk</span>
-          <strong>{risk.totalRiskScore} - {risk.riskLevel}</strong>
         </div>
       </section>
 
@@ -133,6 +118,10 @@ export default function SurveyForm({ initialValues = {}, onSubmit, submitLabel =
       </div>
     </form>
   );
+}
+
+function isLocked(field, lockedFields) {
+  return field.readOnly || lockedFields.includes(field.name);
 }
 
 function requiredMissing(values) {

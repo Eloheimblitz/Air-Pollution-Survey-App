@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 export default function AppLayout() {
   const navigate = useNavigate();
   const session = getSession();
+  const isAdmin = session?.role === 'ADMIN';
   const [online, setOnline] = useState(navigator.onLine);
 
   useEffect(() => {
@@ -22,6 +23,35 @@ export default function AppLayout() {
     navigate('/login');
   }
 
+  if (!isAdmin) {
+    return (
+      <div className="field-shell">
+        <header className="field-topbar">
+          <div>
+            <p className="eyebrow">APCHS Field</p>
+            <h1>Household Survey</h1>
+          </div>
+          <div className="field-user-panel">
+            <span className={`connection-status ${online ? 'online' : 'offline'}`}>
+              {online ? 'Online' : 'Offline'}
+            </span>
+            <strong>{session?.username}</strong>
+            <button className="ghost-button" onClick={logout}>Sign out</button>
+          </div>
+        </header>
+        <nav className="field-nav" aria-label="Surveyor navigation">
+          <NavLink to="/surveys/new">New</NavLink>
+          <NavLink to="/surveys">Records</NavLink>
+          <NavLink to="/offline-queue">Sync</NavLink>
+          <NavLink to="/account">Account</NavLink>
+        </nav>
+        <main className="field-content">
+          <Outlet />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -34,7 +64,7 @@ export default function AppLayout() {
           <NavLink to="/surveys/new">Add Survey</NavLink>
           <NavLink to="/surveys">Records</NavLink>
           <NavLink to="/offline-queue">Pending Sync</NavLink>
-          {session?.role === 'ADMIN' && <NavLink to="/users">Users</NavLink>}
+          <NavLink to="/users">Users</NavLink>
           <NavLink to="/account">Account</NavLink>
         </nav>
         <div className="user-card">

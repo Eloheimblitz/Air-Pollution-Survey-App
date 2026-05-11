@@ -6,6 +6,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const [form, setForm] = useState({ username: '', password: '' });
+  const notice = location.state?.message;
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -16,7 +17,11 @@ export default function Login() {
     try {
       const { data } = await api.post('/auth/login', form);
       saveSession(data);
-      navigate(location.state?.from?.pathname || '/dashboard', { replace: true });
+      const intendedPath = location.state?.from?.pathname;
+      const defaultPath = data.role === 'ADMIN' ? '/dashboard' : '/surveys/new';
+      const adminOnlyPaths = ['/', '/dashboard', '/users'];
+      const nextPath = data.role === 'ADMIN' || !adminOnlyPaths.includes(intendedPath) ? intendedPath || defaultPath : defaultPath;
+      navigate(nextPath, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Check username and password.');
     } finally {
@@ -31,6 +36,7 @@ export default function Login() {
         <h1>Air Pollution Household Data Collection</h1>
         <p className="muted">Data entered here is used for health survey analysis and should be handled with care.</p>
         <form onSubmit={submit}>
+          {notice && <div className="alert success">{notice}</div>}
           <label>
             Username
             <input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} required />

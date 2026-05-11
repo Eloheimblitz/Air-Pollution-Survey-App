@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 public class RiskScoringService {
     private static final String[] SYMPTOMS = {
             "sinusitis", "rhinitis", "sneezing", "soreThroat", "coldOrFever", "dryCough",
-            "phlegmCough", "wheezing", "breathlessness", "chestDiscomfort", "sleepDisturbance",
+            "wetCough", "wheezing", "breathlessness", "chestDiscomfort", "sleepDisturbance",
             "headache", "eyeIrritation", "skinIrritation"
     };
 
@@ -17,7 +17,6 @@ public class RiskScoringService {
 
         int exposure = 0;
         if (isAny(record.getPrimaryCookingFuel(), "FIREWOOD", "COAL")) exposure += 3;
-        if (isAny(record.getSecondaryCookingFuel(), "FIREWOOD", "COAL")) exposure += 2;
         if (is(record.getKitchenVentilation(), "POOR")) exposure += 3;
         if (is(record.getKitchenVentilation(), "MODERATE")) exposure += 1;
         if (Boolean.FALSE.equals(record.getChimneyOrExhaustAvailable())) exposure += 1;
@@ -35,14 +34,12 @@ public class RiskScoringService {
         int vulnerability = 0;
         if (isAny(ageGroup, "UNDER_5", "ELDERLY_60_PLUS")) vulnerability += 2;
         if (Boolean.TRUE.equals(record.getAsthma())) vulnerability += 3;
-        if (Boolean.TRUE.equals(record.getCopdOrChronicBronchitis())) vulnerability += 3;
         if (Boolean.TRUE.equals(record.getTuberculosis())) vulnerability += 3;
-        if (Boolean.TRUE.equals(record.getLongTermRespiratoryDisease())) vulnerability += 3;
 
         int symptom = symptomValue(record.getSinusitis()) + symptomValue(record.getRhinitis())
                 + symptomValue(record.getSneezing()) + symptomValue(record.getSoreThroat())
                 + symptomValue(record.getColdOrFever()) + symptomValue(record.getDryCough())
-                + symptomValue(record.getPhlegmCough()) + symptomValue(record.getWheezing())
+                + symptomValue(record.getWetCough()) + symptomValue(record.getWheezing())
                 + symptomValue(record.getBreathlessness()) + symptomValue(record.getChestDiscomfort())
                 + symptomValue(record.getSleepDisturbance()) + symptomValue(record.getHeadache())
                 + symptomValue(record.getEyeIrritation()) + symptomValue(record.getSkinIrritation());

@@ -89,7 +89,6 @@ export default function OfflineQueue() {
                 <th>Saved</th>
                 <th>Surveyor</th>
                 <th>Study Area</th>
-                <th>Village</th>
                 <th>Respondent</th>
                 <th>Status</th>
                 <th>Error</th>
@@ -102,8 +101,7 @@ export default function OfflineQueue() {
                   <td>{new Date(record.createdAt).toLocaleString()}</td>
                   <td>{record.username}</td>
                   <td>{labelize(record.payload.studyArea || '')}</td>
-                  <td>{record.payload.village || '-'}</td>
-                  <td>{record.payload.respondentName || record.payload.headOfHouseholdName || '-'}</td>
+                  <td>{record.payload.respondentName || '-'}</td>
                   <td><span className={`sync-badge ${record.status.toLowerCase()}`}>{labelize(record.status)}</span></td>
                   <td>{record.error || '-'}</td>
                   <td className="row-actions">

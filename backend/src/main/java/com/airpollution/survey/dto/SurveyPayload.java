@@ -21,25 +21,17 @@ public class SurveyPayload {
     private BigDecimal latitude;
     private BigDecimal longitude;
     private BigDecimal gpsAccuracy;
+    private String gridId;
     private String headOfHouseholdName;
     private String contactNumber;
-    @NotBlank
     private String district;
-    @NotBlank
     private String block;
-    @NotBlank
     private String village;
     private String locality;
     private String wardOrHouseNumber;
-    @NotBlank
     private String houseType;
-    @NotNull
-    @Min(1)
     private Integer numberOfRooms;
-    @NotNull
-    @Min(1)
     private Integer totalHouseholdMembers;
-    @NotBlank
     private String ventilationOfHouse;
     private String respondentName;
     @NotBlank
@@ -62,42 +54,27 @@ public class SurveyPayload {
     private Integer numberOfSmokersInHousehold;
     @NotBlank
     private String primaryCookingFuel;
-    @NotBlank
+    private String otherCookingFuel;
     private String secondaryCookingFuel;
-    @NotBlank
     private String currentSimpleCookingCategory;
     @NotBlank
     private String cookingLocation;
-    @NotBlank
+    private String otherCookingLocation;
     private String kitchenVentilation;
-    @NotNull
     private Boolean chimneyOrExhaustAvailable;
     private BigDecimal averageCookingHoursPerDay;
-    @NotNull
     private Boolean electricityAvailable;
-    @NotNull
     private Boolean indoorSmoking;
-    @NotBlank
     private String mosquitoCoilOrIncenseUse;
-    @NotNull
     private Boolean dampnessOrMould;
-    @NotBlank
     private String indoorDustLevel;
-    @NotNull
     private Boolean houseNearMainRoad;
-    @NotBlank
     private String distanceFromMainRoad;
-    @NotBlank
     private String heavyVehicleMovementNearby;
-    @NotNull
     private Boolean nearbyIndustryFactoryQuarry;
-    @NotNull
     private Boolean nearbyWasteBurning;
-    @NotNull
     private Boolean nearbyConstructionDust;
-    @NotNull
     private Boolean visibleDustOrSmokeAroundHouse;
-    @NotBlank
     private String timeSpentOutdoorsPerDay;
     private String sinusitis;
     private String rhinitis;
@@ -105,6 +82,7 @@ public class SurveyPayload {
     private String soreThroat;
     private String coldOrFever;
     private String dryCough;
+    private String wetCough;
     private String phlegmCough;
     private String wheezing;
     private String breathlessness;
@@ -113,11 +91,11 @@ public class SurveyPayload {
     private String headache;
     private String eyeIrritation;
     private String skinIrritation;
-    @NotNull
     private Boolean asthma;
     private Boolean inhalerUse;
     private Boolean heartProblems;
     private Boolean diabetes;
+    private Boolean highBp;
     private Boolean hypertension;
     private Boolean tuberculosis;
     private Boolean copdOrChronicBronchitis;
@@ -133,6 +111,8 @@ public class SurveyPayload {
     private Boolean hospitalVisitRelatedToBreathing;
     private Boolean selfVaccination;
     private Boolean anyChildUnderFiveInHousehold;
+    @Min(0)
+    private Integer numberOfChildren;
     private String childVaccinationComplete;
     private String childBirthplace;
     private Boolean enrolledInMHIS;
@@ -156,6 +136,16 @@ public class SurveyPayload {
     @AssertFalse(message = "Other occupation is required when occupation is OTHER")
     public boolean isOtherOccupationMissing() {
         return "OTHER".equals(occupation) && isBlank(otherOccupation);
+    }
+
+    @AssertFalse(message = "Other cooking type is required when cooking is OTHER")
+    public boolean isOtherCookingFuelMissing() {
+        return "OTHER".equals(primaryCookingFuel) && isBlank(otherCookingFuel);
+    }
+
+    @AssertFalse(message = "Other cooking location is required when cooking location is OTHER")
+    public boolean isOtherCookingLocationMissing() {
+        return "OTHER".equals(cookingLocation) && isBlank(otherCookingLocation);
     }
 
     @AssertFalse(message = "Facility type is required when hospital was visited")
@@ -208,6 +198,8 @@ public class SurveyPayload {
     public void setLongitude(BigDecimal longitude) { this.longitude = longitude; }
     public BigDecimal getGpsAccuracy() { return gpsAccuracy; }
     public void setGpsAccuracy(BigDecimal gpsAccuracy) { this.gpsAccuracy = gpsAccuracy; }
+    public String getGridId() { return gridId; }
+    public void setGridId(String gridId) { this.gridId = gridId; }
     public String getHeadOfHouseholdName() { return headOfHouseholdName; }
     public void setHeadOfHouseholdName(String headOfHouseholdName) { this.headOfHouseholdName = headOfHouseholdName; }
     public String getContactNumber() { return contactNumber; }
@@ -256,12 +248,16 @@ public class SurveyPayload {
     public void setNumberOfSmokersInHousehold(Integer numberOfSmokersInHousehold) { this.numberOfSmokersInHousehold = numberOfSmokersInHousehold; }
     public String getPrimaryCookingFuel() { return primaryCookingFuel; }
     public void setPrimaryCookingFuel(String primaryCookingFuel) { this.primaryCookingFuel = primaryCookingFuel; }
+    public String getOtherCookingFuel() { return otherCookingFuel; }
+    public void setOtherCookingFuel(String otherCookingFuel) { this.otherCookingFuel = otherCookingFuel; }
     public String getSecondaryCookingFuel() { return secondaryCookingFuel; }
     public void setSecondaryCookingFuel(String secondaryCookingFuel) { this.secondaryCookingFuel = secondaryCookingFuel; }
     public String getCurrentSimpleCookingCategory() { return currentSimpleCookingCategory; }
     public void setCurrentSimpleCookingCategory(String currentSimpleCookingCategory) { this.currentSimpleCookingCategory = currentSimpleCookingCategory; }
     public String getCookingLocation() { return cookingLocation; }
     public void setCookingLocation(String cookingLocation) { this.cookingLocation = cookingLocation; }
+    public String getOtherCookingLocation() { return otherCookingLocation; }
+    public void setOtherCookingLocation(String otherCookingLocation) { this.otherCookingLocation = otherCookingLocation; }
     public String getKitchenVentilation() { return kitchenVentilation; }
     public void setKitchenVentilation(String kitchenVentilation) { this.kitchenVentilation = kitchenVentilation; }
     public Boolean getChimneyOrExhaustAvailable() { return chimneyOrExhaustAvailable; }
@@ -306,6 +302,8 @@ public class SurveyPayload {
     public void setColdOrFever(String coldOrFever) { this.coldOrFever = coldOrFever; }
     public String getDryCough() { return dryCough; }
     public void setDryCough(String dryCough) { this.dryCough = dryCough; }
+    public String getWetCough() { return wetCough; }
+    public void setWetCough(String wetCough) { this.wetCough = wetCough; }
     public String getPhlegmCough() { return phlegmCough; }
     public void setPhlegmCough(String phlegmCough) { this.phlegmCough = phlegmCough; }
     public String getWheezing() { return wheezing; }
@@ -330,6 +328,8 @@ public class SurveyPayload {
     public void setHeartProblems(Boolean heartProblems) { this.heartProblems = heartProblems; }
     public Boolean getDiabetes() { return diabetes; }
     public void setDiabetes(Boolean diabetes) { this.diabetes = diabetes; }
+    public Boolean getHighBp() { return highBp; }
+    public void setHighBp(Boolean highBp) { this.highBp = highBp; }
     public Boolean getHypertension() { return hypertension; }
     public void setHypertension(Boolean hypertension) { this.hypertension = hypertension; }
     public Boolean getTuberculosis() { return tuberculosis; }
@@ -358,6 +358,8 @@ public class SurveyPayload {
     public void setSelfVaccination(Boolean selfVaccination) { this.selfVaccination = selfVaccination; }
     public Boolean getAnyChildUnderFiveInHousehold() { return anyChildUnderFiveInHousehold; }
     public void setAnyChildUnderFiveInHousehold(Boolean anyChildUnderFiveInHousehold) { this.anyChildUnderFiveInHousehold = anyChildUnderFiveInHousehold; }
+    public Integer getNumberOfChildren() { return numberOfChildren; }
+    public void setNumberOfChildren(Integer numberOfChildren) { this.numberOfChildren = numberOfChildren; }
     public String getChildVaccinationComplete() { return childVaccinationComplete; }
     public void setChildVaccinationComplete(String childVaccinationComplete) { this.childVaccinationComplete = childVaccinationComplete; }
     public String getChildBirthplace() { return childBirthplace; }

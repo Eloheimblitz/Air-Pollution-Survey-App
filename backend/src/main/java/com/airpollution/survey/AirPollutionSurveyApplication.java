@@ -6,8 +6,8 @@ import com.airpollution.survey.config.DatabaseUrlNormalizer;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @SpringBootApplication
@@ -19,12 +19,9 @@ public class AirPollutionSurveyApplication {
     }
 
     @Bean
-    CommandLineRunner seedUsers(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                                @Value("${app.seed-demo-users}") boolean seedDemoUsers) {
+    @ConditionalOnProperty(name = "app.seed-demo-users", havingValue = "true")
+    CommandLineRunner seedUsers(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
-            if (!seedDemoUsers) {
-                return;
-            }
             createUserIfMissing(userRepository, passwordEncoder, "admin", "admin123", "ADMIN");
             createUserIfMissing(userRepository, passwordEncoder, "surveyor", "survey123", "SURVEYOR");
         };

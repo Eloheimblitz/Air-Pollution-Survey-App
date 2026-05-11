@@ -12,6 +12,7 @@ export default function SurveyPage({ mode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const session = getSession();
 
   useEffect(() => {
     if (mode === 'edit') {
@@ -71,7 +72,7 @@ export default function SurveyPage({ mode }) {
           )}
         </div>
       )}
-      <SurveyForm initialValues={record || undefined} onSubmit={save} loading={loading} submitLabel={mode === 'edit' ? 'Update survey' : 'Submit survey'} />
+      <SurveyForm initialValues={mode === 'edit' ? record || undefined : { surveyorId: session?.username || '' }} lockedFields={mode === 'create' ? ['surveyorId', 'district'] : ['district']} onSubmit={save} loading={loading} submitLabel={mode === 'edit' ? 'Update survey' : 'Submit survey'} />
     </div>
   );
 }

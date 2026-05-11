@@ -36,6 +36,7 @@ public class SurveyService {
     public SurveyResponse create(SurveyCreateRequest request, Authentication authentication) {
         SurveyRecord record = new SurveyRecord();
         mapper.copyPayload(request, record);
+        applyLocationDefaults(record);
         record.setSubmittedBy(authentication.getName());
         record.setCreatedAt(OffsetDateTime.now());
         record.setUpdatedAt(OffsetDateTime.now());
@@ -67,6 +68,7 @@ public class SurveyService {
     public SurveyResponse update(Long id, SurveyUpdateRequest request, Authentication authentication) {
         SurveyRecord record = getRecord(id, authentication);
         mapper.copyPayload(request, record);
+        applyLocationDefaults(record);
         record.setUpdatedAt(OffsetDateTime.now());
         riskScoringService.applyScores(record);
         return mapper.toResponse(repository.save(record));
@@ -118,6 +120,15 @@ public class SurveyService {
         return authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .anyMatch("ROLE_ADMIN"::equals);
+    }
+
+    private void applyLocationDefaults(SurveyRecord record) {
+        record.setDistrict("Ri Bhoi");
+        if ("BYRNIHAT".equals(record.getStudyArea()) || "NONGPOH".equals(record.getStudyArea())) {
+            record.setBlock("Umling");
+        } else if ("BHOIRYMBONG".equals(record.getStudyArea())) {
+            record.setBlock("Bhoirymbong");
+        }
     }
 
     private String nextSurveyId(LocalDate date) {

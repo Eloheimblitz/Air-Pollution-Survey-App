@@ -20,9 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class ExportService {
     private static final String[] HEADERS = {
             "Survey ID", "Survey Date", "Household ID", "Submitted By", "Study Area", "District", "Block",
-            "Village", "Age", "Gender", "Primary Cooking Fuel", "Hospital Visit", "Symptoms Summary",
+            "Village", "Age", "Gender", "Cooking", "Cooking Location", "Hospital Visit", "Symptoms Summary",
             "Exposure Risk Score", "Symptom Score", "Vulnerability Score", "Total Risk Score", "Risk Level",
-            "Latitude", "Longitude", "Remarks"
+            "Latitude", "Longitude", "GPS Accuracy", "Grid ID", "Remarks"
     };
 
     private final SurveyRecordRepository repository;
@@ -86,10 +86,11 @@ public class ExportService {
         return new String[] {
                 text(r.getSurveyId()), text(r.getSurveyDate()), text(r.getHouseholdId()), text(r.getSubmittedBy()),
                 label(r.getStudyArea()), text(r.getDistrict()), text(r.getBlock()), text(r.getVillage()),
-                text(r.getAge()), label(r.getGender()), label(r.getPrimaryCookingFuel()),
+                text(r.getAge()), label(r.getGender()), cooking(r), cookingLocation(r),
                 Boolean.TRUE.equals(r.getVisitedHospital()) ? "Yes" : "No", mapper.toResponse(r).mainSymptomsSummary(),
                 text(r.getExposureRiskScore()), text(r.getSymptomScore()), text(r.getVulnerabilityScore()),
                 text(r.getTotalRiskScore()), label(r.getRiskLevel()), text(r.getLatitude()), text(r.getLongitude()),
+                text(r.getGpsAccuracy()), text(r.getGridId()),
                 text(r.getRemarks())
         };
     }
@@ -100,5 +101,21 @@ public class ExportService {
 
     private String label(String value) {
         return value == null ? "" : value.replace('_', ' ');
+    }
+
+    private String cooking(SurveyRecord record) {
+        if ("OTHER".equals(record.getPrimaryCookingFuel()) && record.getOtherCookingFuel() != null
+                && !record.getOtherCookingFuel().isBlank()) {
+            return record.getOtherCookingFuel();
+        }
+        return label(record.getPrimaryCookingFuel());
+    }
+
+    private String cookingLocation(SurveyRecord record) {
+        if ("OTHER".equals(record.getCookingLocation()) && record.getOtherCookingLocation() != null
+                && !record.getOtherCookingLocation().isBlank()) {
+            return record.getOtherCookingLocation();
+        }
+        return label(record.getCookingLocation());
     }
 }

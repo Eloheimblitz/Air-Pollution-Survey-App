@@ -34,6 +34,7 @@ public class SurveyRecord {
     private BigDecimal latitude;
     private BigDecimal longitude;
     private BigDecimal gpsAccuracy;
+    private String gridId;
 
     private String headOfHouseholdName;
     private String contactNumber;
@@ -61,9 +62,11 @@ public class SurveyRecord {
     private Integer numberOfSmokersInHousehold;
 
     private String primaryCookingFuel;
+    private String otherCookingFuel;
     private String secondaryCookingFuel;
     private String currentSimpleCookingCategory;
     private String cookingLocation;
+    private String otherCookingLocation;
     private String kitchenVentilation;
     private Boolean chimneyOrExhaustAvailable;
     private BigDecimal averageCookingHoursPerDay;
@@ -88,6 +91,7 @@ public class SurveyRecord {
     private String soreThroat;
     private String coldOrFever;
     private String dryCough;
+    private String wetCough;
     private String phlegmCough;
     private String wheezing;
     private String breathlessness;
@@ -101,6 +105,7 @@ public class SurveyRecord {
     private Boolean inhalerUse;
     private Boolean heartProblems;
     private Boolean diabetes;
+    private Boolean highBp;
     private Boolean hypertension;
     private Boolean tuberculosis;
     private Boolean copdOrChronicBronchitis;
@@ -116,6 +121,7 @@ public class SurveyRecord {
     private Boolean hospitalVisitRelatedToBreathing;
     private Boolean selfVaccination;
     private Boolean anyChildUnderFiveInHousehold;
+    private Integer numberOfChildren;
     private String childVaccinationComplete;
     private String childBirthplace;
     private Boolean enrolledInMHIS;
@@ -161,6 +167,8 @@ public class SurveyRecord {
     public void setLongitude(BigDecimal longitude) { this.longitude = longitude; }
     public BigDecimal getGpsAccuracy() { return gpsAccuracy; }
     public void setGpsAccuracy(BigDecimal gpsAccuracy) { this.gpsAccuracy = gpsAccuracy; }
+    public String getGridId() { return gridId; }
+    public void setGridId(String gridId) { this.gridId = gridId; }
     public String getHeadOfHouseholdName() { return headOfHouseholdName; }
     public void setHeadOfHouseholdName(String headOfHouseholdName) { this.headOfHouseholdName = headOfHouseholdName; }
     public String getContactNumber() { return contactNumber; }
@@ -209,12 +217,16 @@ public class SurveyRecord {
     public void setNumberOfSmokersInHousehold(Integer numberOfSmokersInHousehold) { this.numberOfSmokersInHousehold = numberOfSmokersInHousehold; }
     public String getPrimaryCookingFuel() { return primaryCookingFuel; }
     public void setPrimaryCookingFuel(String primaryCookingFuel) { this.primaryCookingFuel = primaryCookingFuel; }
+    public String getOtherCookingFuel() { return otherCookingFuel; }
+    public void setOtherCookingFuel(String otherCookingFuel) { this.otherCookingFuel = otherCookingFuel; }
     public String getSecondaryCookingFuel() { return secondaryCookingFuel; }
     public void setSecondaryCookingFuel(String secondaryCookingFuel) { this.secondaryCookingFuel = secondaryCookingFuel; }
     public String getCurrentSimpleCookingCategory() { return currentSimpleCookingCategory; }
     public void setCurrentSimpleCookingCategory(String currentSimpleCookingCategory) { this.currentSimpleCookingCategory = currentSimpleCookingCategory; }
     public String getCookingLocation() { return cookingLocation; }
     public void setCookingLocation(String cookingLocation) { this.cookingLocation = cookingLocation; }
+    public String getOtherCookingLocation() { return otherCookingLocation; }
+    public void setOtherCookingLocation(String otherCookingLocation) { this.otherCookingLocation = otherCookingLocation; }
     public String getKitchenVentilation() { return kitchenVentilation; }
     public void setKitchenVentilation(String kitchenVentilation) { this.kitchenVentilation = kitchenVentilation; }
     public Boolean getChimneyOrExhaustAvailable() { return chimneyOrExhaustAvailable; }
@@ -259,6 +271,8 @@ public class SurveyRecord {
     public void setColdOrFever(String coldOrFever) { this.coldOrFever = coldOrFever; }
     public String getDryCough() { return dryCough; }
     public void setDryCough(String dryCough) { this.dryCough = dryCough; }
+    public String getWetCough() { return wetCough; }
+    public void setWetCough(String wetCough) { this.wetCough = wetCough; }
     public String getPhlegmCough() { return phlegmCough; }
     public void setPhlegmCough(String phlegmCough) { this.phlegmCough = phlegmCough; }
     public String getWheezing() { return wheezing; }
@@ -283,6 +297,8 @@ public class SurveyRecord {
     public void setHeartProblems(Boolean heartProblems) { this.heartProblems = heartProblems; }
     public Boolean getDiabetes() { return diabetes; }
     public void setDiabetes(Boolean diabetes) { this.diabetes = diabetes; }
+    public Boolean getHighBp() { return highBp; }
+    public void setHighBp(Boolean highBp) { this.highBp = highBp; }
     public Boolean getHypertension() { return hypertension; }
     public void setHypertension(Boolean hypertension) { this.hypertension = hypertension; }
     public Boolean getTuberculosis() { return tuberculosis; }
@@ -311,6 +327,8 @@ public class SurveyRecord {
     public void setSelfVaccination(Boolean selfVaccination) { this.selfVaccination = selfVaccination; }
     public Boolean getAnyChildUnderFiveInHousehold() { return anyChildUnderFiveInHousehold; }
     public void setAnyChildUnderFiveInHousehold(Boolean anyChildUnderFiveInHousehold) { this.anyChildUnderFiveInHousehold = anyChildUnderFiveInHousehold; }
+    public Integer getNumberOfChildren() { return numberOfChildren; }
+    public void setNumberOfChildren(Integer numberOfChildren) { this.numberOfChildren = numberOfChildren; }
     public String getChildVaccinationComplete() { return childVaccinationComplete; }
     public void setChildVaccinationComplete(String childVaccinationComplete) { this.childVaccinationComplete = childVaccinationComplete; }
     public String getChildBirthplace() { return childBirthplace; }

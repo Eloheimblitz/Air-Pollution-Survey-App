@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import api, { getSession } from '../api/client';
+import { useNavigate } from 'react-router-dom';
+import api, { clearSession, getSession } from '../api/client';
 
 const blankUser = {
   username: '',
@@ -8,6 +9,7 @@ const blankUser = {
 };
 
 export default function Users() {
+  const navigate = useNavigate();
   const session = getSession();
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState(blankUser);
@@ -27,8 +29,13 @@ export default function Users() {
     try {
       const { data } = await api.get('/users');
       setUsers(data);
-    } catch {
-      setError('Unable to load users.');
+    } catch (err) {
+      if ([401, 403].includes(err.response?.status)) {
+        clearSession();
+        navigate('/login', { replace: true, state: { message: 'Please sign in again as admin.' } });
+        return;
+      }
+      setError(err.response?.data?.message || 'Unable to load users.');
     }
   }
 
