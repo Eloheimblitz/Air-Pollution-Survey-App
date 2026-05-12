@@ -38,7 +38,7 @@ export default function SurveyForm({ initialValues = {}, lockedFields = [], onSu
     setGpsStatus(navigator.onLine ? 'Capturing GPS location...' : 'Searching GPS offline. Keep Location on and stay in an open area if possible...');
 
     try {
-      const position = await getCurrentGpsPosition({ enableHighAccuracy: true, timeout: 45000, maximumAge: 0 });
+      const position = await getCurrentGpsPosition({ enableHighAccuracy: true, timeout: navigator.onLine ? 45000 : 90000, maximumAge: 0 });
       applyGpsPosition(position, setValues);
       setGpsStatus('GPS location captured.');
     } catch (firstError) {
@@ -49,8 +49,9 @@ export default function SurveyForm({ initialValues = {}, lockedFields = [], onSu
       }
 
       try {
-        setGpsStatus('Still searching for GPS. This can take up to 1 minute without internet...');
-        const watchedPosition = await watchGpsPosition({ enableHighAccuracy: true, timeout: 60000, maximumAge: 0 }, 60000);
+        setGpsStatus('Still searching for GPS. First offline location can take 2 to 3 minutes...');
+        const offlineSearchMs = navigator.onLine ? 60000 : 180000;
+        const watchedPosition = await watchGpsPosition({ enableHighAccuracy: true, timeout: offlineSearchMs, maximumAge: 0 }, offlineSearchMs);
         applyGpsPosition(watchedPosition, setValues);
         setGpsStatus('GPS location captured.');
       } catch (watchError) {
@@ -228,7 +229,7 @@ function gpsErrorMessage(error) {
     return 'Location unavailable. Keep phone Location/GPS on, move near a window or open area, then try again. Use Grid ID if GPS is still unavailable.';
   }
   if (error.code === 3) {
-    return 'GPS timed out. Without internet it may take longer to lock. Stay in an open area, try again, or enter the Grid ID.';
+    return 'GPS timed out. First offline GPS can take several minutes. Stay in an open area, try again, or enter the Grid ID.';
   }
   return 'Location could not be captured. You can enter the Grid ID manually.';
 }
