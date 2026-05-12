@@ -29,6 +29,10 @@ export default function SurveyForm({ initialValues = {}, lockedFields = [], onSu
       setGpsStatus('GPS is not available in this browser.');
       return;
     }
+    if (!window.isSecureContext) {
+      setGpsStatus('GPS requires HTTPS. Use the deployed https:// site.');
+      return;
+    }
     setGpsStatus('Capturing location...');
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -40,8 +44,18 @@ export default function SurveyForm({ initialValues = {}, lockedFields = [], onSu
         }));
         setGpsStatus('Location captured.');
       },
-      () => setGpsStatus('Location permission denied or unavailable.'),
-      { enableHighAccuracy: true, timeout: 12000 }
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          setGpsStatus('Location is blocked. Allow Location for this site in your phone browser settings, then try again.');
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          setGpsStatus('Location unavailable. Turn on phone Location/GPS or enter the Grid ID manually.');
+        } else if (error.code === error.TIMEOUT) {
+          setGpsStatus('GPS timed out. Keep Location on, wait a few seconds, then try again or enter the Grid ID.');
+        } else {
+          setGpsStatus('Location could not be captured. You can enter the Grid ID manually.');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
     );
   }
 
