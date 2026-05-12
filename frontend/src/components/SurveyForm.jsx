@@ -7,6 +7,7 @@ export default function SurveyForm({ initialValues = {}, lockedFields = [], onSu
   const [values, setValues] = useState({ ...defaultSurvey, ...initialValues });
   const [activeSection, setActiveSection] = useState(0);
   const [gpsStatus, setGpsStatus] = useState('');
+  const [gpsLoading, setGpsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState([]);
 
   function update(name, value) {
@@ -24,7 +25,7 @@ export default function SurveyForm({ initialValues = {}, lockedFields = [], onSu
     return Object.entries(field.showWhen).every(([key, expected]) => values[key] === expected);
   }
 
-  function captureGps() {
+  async function captureGps() {
     if (!navigator.geolocation) {
       setGpsStatus('GPS is not available in this browser.');
       return;
@@ -33,30 +34,43 @@ export default function SurveyForm({ initialValues = {}, lockedFields = [], onSu
       setGpsStatus('GPS requires HTTPS. Use the deployed https:// site.');
       return;
     }
-    setGpsStatus('Capturing location...');
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setValues((current) => ({
-          ...current,
-          latitude: Number(position.coords.latitude.toFixed(7)),
-          longitude: Number(position.coords.longitude.toFixed(7)),
-          gpsAccuracy: Number(position.coords.accuracy.toFixed(1))
-        }));
-        setGpsStatus('Location captured.');
-      },
-      (error) => {
-        if (error.code === error.PERMISSION_DENIED) {
-          setGpsStatus('Location is blocked. Allow Location for this site in your phone browser settings, then try again.');
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          setGpsStatus('Location unavailable. Turn on phone Location/GPS or enter the Grid ID manually.');
-        } else if (error.code === error.TIMEOUT) {
-          setGpsStatus('GPS timed out. Keep Location on, wait a few seconds, then try again or enter the Grid ID.');
-        } else {
-          setGpsStatus('Location could not be captured. You can enter the Grid ID manually.');
+    setGpsLoading(true);
+    setGpsStatus(navigator.onLine ? 'Capturing GPS location...' : 'Searching GPS offline. Keep Location on and stay in an open area if possible...');
+
+    try {
+      const position = await getCurrentGpsPosition({ enableHighAccuracy: true, timeout: 45000, maximumAge: 0 });
+      applyGpsPosition(position, setValues);
+      setGpsStatus('GPS location captured.');
+    } catch (firstError) {
+      if (firstError.code === firstError.PERMISSION_DENIED) {
+        setGpsStatus(gpsErrorMessage(firstError));
+        setGpsLoading(false);
+        return;
+      }
+
+      try {
+        setGpsStatus('Still searching for GPS. This can take up to 1 minute without internet...');
+        const watchedPosition = await watchGpsPosition({ enableHighAccuracy: true, timeout: 60000, maximumAge: 0 }, 60000);
+        applyGpsPosition(watchedPosition, setValues);
+        setGpsStatus('GPS location captured.');
+      } catch (watchError) {
+        if (watchError.code === watchError.PERMISSION_DENIED) {
+          setGpsStatus(gpsErrorMessage(watchError));
+          setGpsLoading(false);
+          return;
         }
-      },
-      { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
-    );
+
+        try {
+          const recentPosition = await getCurrentGpsPosition({ enableHighAccuracy: false, timeout: 5000, maximumAge: 10 * 60 * 1000 });
+          applyGpsPosition(recentPosition, setValues);
+          setGpsStatus('Recent phone location captured. Check it before saving if you moved far from this household.');
+        } catch {
+          setGpsStatus(gpsErrorMessage(watchError || firstError));
+        }
+      }
+    } finally {
+      setGpsLoading(false);
+    }
   }
 
   function submit(event) {
@@ -97,7 +111,9 @@ export default function SurveyForm({ initialValues = {}, lockedFields = [], onSu
         {section.help && <p className="muted">{section.help}</p>}
         {activeSection === 0 && (
           <div className="gps-row">
-            <button type="button" className="secondary-button" onClick={captureGps}>Capture GPS</button>
+            <button type="button" className="secondary-button" onClick={captureGps} disabled={gpsLoading}>
+              {gpsLoading ? 'Capturing...' : 'Capture GPS'}
+            </button>
             <span>{gpsStatus}</span>
           </div>
         )}
@@ -155,4 +171,64 @@ function requiredMissing(values) {
 function isVisible(field, values) {
   if (!field.showWhen) return true;
   return Object.entries(field.showWhen).every(([key, expected]) => values[key] === expected);
+}
+
+function getCurrentGpsPosition(options) {
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(resolve, reject, options);
+  });
+}
+
+function watchGpsPosition(options, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let lastError = null;
+    let watchId = null;
+    let timerId = null;
+    const finish = (callback, value) => {
+      if (settled) return;
+      settled = true;
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      if (timerId !== null) clearTimeout(timerId);
+      callback(value);
+    };
+
+    watchId = navigator.geolocation.watchPosition(
+      (position) => finish(resolve, position),
+      (error) => {
+        lastError = error;
+        if (error.code === error.PERMISSION_DENIED) {
+          finish(reject, error);
+        }
+      },
+      options
+    );
+
+    timerId = window.setTimeout(() => {
+      const timeoutError = lastError || { code: 3 };
+      finish(reject, timeoutError);
+    }, timeoutMs);
+  });
+}
+
+function applyGpsPosition(position, setValues) {
+  setValues((current) => ({
+    ...current,
+    latitude: Number(position.coords.latitude.toFixed(7)),
+    longitude: Number(position.coords.longitude.toFixed(7)),
+    gpsAccuracy: Number(position.coords.accuracy.toFixed(1))
+  }));
+}
+
+function gpsErrorMessage(error) {
+  if (error.code === 1) {
+    return 'Location is blocked. Allow Location for this site in your phone browser settings, then try again.';
+  }
+  if (error.code === 2) {
+    return 'Location unavailable. Keep phone Location/GPS on, move near a window or open area, then try again. Use Grid ID if GPS is still unavailable.';
+  }
+  if (error.code === 3) {
+    return 'GPS timed out. Without internet it may take longer to lock. Stay in an open area, try again, or enter the Grid ID.';
+  }
+  return 'Location could not be captured. You can enter the Grid ID manually.';
 }
